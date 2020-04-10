@@ -1,0 +1,64 @@
+language: c
+os:
+  - linux
+dist: bionic
+
+addons:
+  artifacts:
+    # ⋮
+    working_dir: build
+
+  apt:
+    packages:
+      - wget
+      - curl
+      - build-essential
+      - flex
+      - g++
+      - git-svn
+      - libcairo2-dev
+      - libglib2.0-dev
+      - libcups2-dev
+      - libgtkglext1-dev
+      - git-core
+      - libglu1-mesa-dev
+      - libnspr4-dev
+      - libnss3-dev
+      - libgnome-keyring-dev
+      - libasound2-dev
+      - gperf
+      - bison
+      - libpci-dev
+      - libkrb5-dev
+      - libgtk-3-dev
+      - libxss-dev
+      - python
+      - libpulse-dev
+      - ca-certificates
+      - default-jre
+
+jobs:
+  include:
+    - script:
+        - mkdir build
+        - cd build
+        - wget https://bitbucket.org/chromiumembedded/cef/raw/master/tools/automate/automate-git.py
+
+        # Full download
+        - time python automate-git.py --download-dir=download --url=https://github.com/tiliado/cef.git \
+          --branch=3809 --checkout=3809-valacef --chromium-url=https://github.com/chromium/chromium.git \
+          --force-clean --force-clean-deps --force-config \
+          --x64-build --build-target=cefsimple --no-build --no-distrib
+
+        # Build
+        - time python automate-git.py --download-dir=download --url=https://github.com/tiliado/cef.git \
+          --branch=3809  --checkout=origin/3809-valacef --chromium-url=https://github.com/chromium/chromium.git \
+          --x64-build --build-target=cefsimple --no-update --force-build \
+          --no-debug-build
+
+      deploy:
+        provider: releases
+        token: $GITHUB_OAUTH_TOKEN
+        cleanup: false
+        on:
+          tags: true
